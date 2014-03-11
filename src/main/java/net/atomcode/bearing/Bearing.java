@@ -1,6 +1,7 @@
 package net.atomcode.bearing;
 
 import android.content.Context;
+import android.location.LocationManager;
 
 import net.atomcode.bearing.geocoding.GeocodingTask;
 import net.atomcode.bearing.geocoding.GeocodingTaskListener;
@@ -62,5 +63,40 @@ public class Bearing
 	public static void getCurrentLocation(Context context, CurrentLocationListener listener)
 	{
 		getCurrentLocation(context, Accuracy.MEDIUM, listener);
+	}
+
+	public static boolean isLocationServicesAvailable(Context context)
+	{
+		if (context == null)
+		{
+			throw new IllegalArgumentException("Context cannot be null on Bearing.isLocationServicesAvailable call");
+		}
+
+		LocationManager lm = (LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
+
+		boolean gps_enabled;
+		boolean network_enabled;
+
+		try
+		{
+			gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
+			if (gps_enabled) return true;
+		}
+		catch(Exception ex)
+		{
+			// Ignore
+		}
+
+		try
+		{
+			network_enabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+			if (network_enabled) return true;
+		}
+		catch(Exception ex)
+		{
+			// Ignore
+		}
+
+		return false;
 	}
 }
