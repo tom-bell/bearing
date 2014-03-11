@@ -13,6 +13,8 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationRequest;
 
+import net.atomcode.bearing.Bearing;
+
 /**
  * Gets the users current location using the best available service
  */
@@ -24,8 +26,15 @@ public class CurrentLocationTask implements GooglePlayServicesClient.ConnectionC
 
 	private Accuracy desiredAccuracy;
 
+	private boolean locationServicesAvailable;
+
 	public CurrentLocationTask(Context context)
 	{
+		if (!(locationServicesAvailable = Bearing.isLocationServicesAvailable(context)))
+		{
+			return;
+		}
+
 		if (GooglePlayServicesUtil.isGooglePlayServicesAvailable(context) == ConnectionResult.SUCCESS)
 		{
 			client = new LocationClient(context, this, this);
@@ -43,6 +52,15 @@ public class CurrentLocationTask implements GooglePlayServicesClient.ConnectionC
 
 	public void execute(Accuracy accuracy)
 	{
+		if (!locationServicesAvailable)
+		{
+			if (listener != null)
+			{
+				listener.onLocationServicesUnavailable();
+			}
+			return;
+		}
+
 		if (client != null)
 		{
 			this.desiredAccuracy = accuracy;
@@ -101,7 +119,7 @@ public class CurrentLocationTask implements GooglePlayServicesClient.ConnectionC
 	}
 
 	/**
-	 * Get the location using the legacy apis
+	 * Get the location using the legacy APIs
 	 * @param accuracy The desired accuracy for the request
 	 */
 	private void getCurrentLocationLegacy(Accuracy accuracy)
@@ -126,7 +144,7 @@ public class CurrentLocationTask implements GooglePlayServicesClient.ConnectionC
 		}
 
 		Location lastKnownUserLocation = locationManager.getLastKnownLocation(provider);
-		if (lastKnownUserLocation.getAccuracy() < accuracy.value)
+		if (lastKnownUserLocation != null && lastKnownUserLocation.getAccuracy() < accuracy.value)
 		{
 			if (listener != null)
 			{
