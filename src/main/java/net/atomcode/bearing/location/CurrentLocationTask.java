@@ -126,7 +126,7 @@ public class CurrentLocationTask implements GooglePlayServicesClient.ConnectionC
 		}
 
 		Location lastKnownUserLocation = locationManager.getLastKnownLocation(provider);
-		if (lastKnownUserLocation.getAccuracy() < accuracy.value)
+		if (lastKnownUserLocation != null && lastKnownUserLocation.getAccuracy() < accuracy.value)
 		{
 			if (listener != null)
 			{
