@@ -21,11 +21,13 @@ public class Bearing
 	 * @param query The string queried
 	 * @param listener The listener to call back to
 	 */
-	public static void getAddressListForQuery(Context context, String query, GeocodingTaskListener listener)
+	public static GeocodingTask getAddressListForQuery(Context context, String query, GeocodingTaskListener listener)
 	{
 		GeocodingTask geocodingTask = new GeocodingTask(context);
 		geocodingTask.setGeocodingTaskListener(listener);
 		geocodingTask.execute(query);
+
+		return geocodingTask;
 	}
 
 	/**
@@ -35,11 +37,13 @@ public class Bearing
 	 * @param longitude The longitude to check
 	 * @param listener The listener to call back to
 	 */
-	public static void getAddressListForLocation(Context context, Double latitude, Double longitude, GeocodingTaskListener listener)
+	public static ReverseGeocodingTask getAddressListForLocation(Context context, Double latitude, Double longitude, GeocodingTaskListener listener)
 	{
 		ReverseGeocodingTask geocodingTask = new ReverseGeocodingTask(context);
 		geocodingTask.setGeocodingTaskListener(listener);
 		geocodingTask.execute(latitude, longitude);
+
+		return geocodingTask;
 	}
 
 	/**
@@ -48,11 +52,13 @@ public class Bearing
 	 * @param accuracy The accuracy to which the users location should match.
 	 * @param listener The listener to call back to
 	 */
-	public static void getCurrentLocation(Context context, Accuracy accuracy, CurrentLocationListener listener)
+	public static CurrentLocationTask getCurrentLocation(Context context, Accuracy accuracy, CurrentLocationListener listener)
 	{
 		CurrentLocationTask currentLocationTask = new CurrentLocationTask(context);
 		currentLocationTask.setCurrentLocationListener(listener);
 		currentLocationTask.execute(accuracy);
+
+		return currentLocationTask;
 	}
 
 	/**
@@ -60,9 +66,9 @@ public class Bearing
 	 * @param context The context of the request
 	 * @param listener The listener to call back to
 	 */
-	public static void getCurrentLocation(Context context, CurrentLocationListener listener)
+	public static CurrentLocationTask getCurrentLocation(Context context, CurrentLocationListener listener)
 	{
-		getCurrentLocation(context, Accuracy.MEDIUM, listener);
+		return getCurrentLocation(context, Accuracy.MEDIUM, listener);
 	}
 
 	public static boolean isLocationServicesAvailable(Context context)

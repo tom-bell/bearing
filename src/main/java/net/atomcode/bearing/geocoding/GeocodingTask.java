@@ -128,7 +128,7 @@ public class GeocodingTask extends AsyncTask<String, Void, List<Address>>
 		{
 			List<Address> results = geocoder.getFromLocationName(query, 1);
 
-			if (results != null && results.size() > 0)
+			if (results != null && results.size() > 0 && !isCancelled())
 			{
 				return results;
 			}
@@ -154,35 +154,35 @@ public class GeocodingTask extends AsyncTask<String, Void, List<Address>>
 		{
 			// Make query API compliant
 			query = query.replace(" ", "+");
-
-			HttpClient client = new DefaultHttpClient();
-
 			String params = "?address=" + query + "&sensor=false";
 
+			HttpClient client = new DefaultHttpClient();
 			HttpGet request = new HttpGet(WEB_API_URL + params);
-
 			HttpResponse response;
-			try
+
+			if (!isCancelled())
 			{
-				response = client.execute(request);
+				try
+				{
+					response = client.execute(request);
+				}
+				catch (ClientProtocolException ex)
+				{
+					ex.printStackTrace();
+					return null;
+				}
+
+				InputStream content = response.getEntity().getContent();
+
+				InputStreamReader inputStreamReader = new InputStreamReader(content);
+				BufferedReader reader = new BufferedReader(inputStreamReader);
+
+				String line;
+				while ((line = reader.readLine()) != null && !isCancelled())
+				{
+					data.append(line);
+				}
 			}
-			catch (ClientProtocolException ex)
-			{
-				ex.printStackTrace();
-				return null;
-			}
-
-			InputStream content = response.getEntity().getContent();
-
-			InputStreamReader inputStreamReader = new InputStreamReader(content);
-			BufferedReader reader = new BufferedReader(inputStreamReader);
-
-			String line;
-			while ((line = reader.readLine()) != null)
-			{
-				data.append(line);
-			}
-
 		}
 		catch (IOException ex)
 		{
@@ -206,27 +206,30 @@ public class GeocodingTask extends AsyncTask<String, Void, List<Address>>
 				]
 			}
 			 */
-			JSONObject geocodeData = new JSONObject(data.toString());
 
-			JSONArray addresses = geocodeData.getJSONArray("results");
-
-			List<Address> addressList = new ArrayList<Address>(addresses.length());
-
-			for (int i = 0; i < addresses.length(); i++)
+			if (!isCancelled())
 			{
-				JSONObject result = addresses.getJSONObject(0);
+				JSONObject geocodeData = new JSONObject(data.toString());
+				JSONArray addresses = geocodeData.getJSONArray("results");
 
-				JSONObject geometry = result.getJSONObject("geometry");
-				JSONObject locationData = geometry.getJSONObject("location");
+				List<Address> addressList = new ArrayList<Address>(addresses.length());
 
-				Address addr = new Address(locale);
-				addr.setLatitude(locationData.getDouble("lat"));
-				addr.setLongitude(locationData.getDouble("lng"));
+				for (int i = 0; i < addresses.length(); i++)
+				{
+					JSONObject result = addresses.getJSONObject(0);
 
-				addressList.add(addr);
+					JSONObject geometry = result.getJSONObject("geometry");
+					JSONObject locationData = geometry.getJSONObject("location");
+
+					Address addr = new Address(locale);
+					addr.setLatitude(locationData.getDouble("lat"));
+					addr.setLongitude(locationData.getDouble("lng"));
+
+					addressList.add(addr);
+				}
+
+				return addressList;
 			}
-
-			return addressList;
 		}
 		catch (JSONException ex)
 		{
