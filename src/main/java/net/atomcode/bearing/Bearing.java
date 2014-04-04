@@ -16,18 +16,69 @@ import net.atomcode.bearing.location.CurrentLocationTask;
 public class Bearing
 {
 	/**
-	 * Geocode query into latitude and longitude
+	 * Geocode query into latitude and longitude into a single, best-guess Address.
+	 * @param context The context of the request
+	 * @param query The string queried
+	 * @param listener The listener to call back to
+	 */
+	public static GeocodingTask getAddressForQuery(Context context, String query, GeocodingTaskListener listener)
+	{
+		return getAddressListForQuery(context, query, listener, 1);
+	}
+
+	/**
+	 * Geocode query into latitude and longitude.
+	 *
+	 * This request returns a list of 10 results by default. For configurable values see
+	 * {@link net.atomcode.bearing.Bearing#getAddressListForQuery(android.content.Context, String, net.atomcode.bearing.geocoding.GeocodingTaskListener, int)}
+	 *
 	 * @param context The context of the request
 	 * @param query The string queried
 	 * @param listener The listener to call back to
 	 */
 	public static GeocodingTask getAddressListForQuery(Context context, String query, GeocodingTaskListener listener)
 	{
+		return getAddressListForQuery(context, query, listener, 10);
+	}
+
+	/**
+	 * Geocode query into latitude and longitude
+	 * @param context The context of the request
+	 * @param query The string queried
+	 * @param listener The listener to call back to
+	 */
+	public static GeocodingTask getAddressListForQuery(Context context, String query, GeocodingTaskListener listener, int resultCount)
+	{
 		GeocodingTask geocodingTask = new GeocodingTask(context);
 		geocodingTask.setGeocodingTaskListener(listener);
+		geocodingTask.setResultCount(resultCount);
 		geocodingTask.execute(query);
 
 		return geocodingTask;
+	}
+
+	/**
+	 * Reverse geocode the location into an address. This method returns a single, best-guess location for the query.
+	 * @param context The context of the request
+	 * @param latitude The latitude to lookup
+	 * @param longitude The longitude to check
+	 * @param listener The listener to call back to
+	 */
+	public static ReverseGeocodingTask getAddressForLocation(Context context, Double latitude, Double longitude, GeocodingTaskListener listener)
+	{
+		return getAddressListForLocation(context, latitude, longitude, listener, 1);
+	}
+
+	/**
+	 * Reverse geocode the location into an address. This method returns a list of default length 10.
+	 * @param context The context of the request
+	 * @param latitude The latitude to lookup
+	 * @param longitude The longitude to check
+	 * @param listener The listener to call back to
+	 */
+	public static ReverseGeocodingTask getAddressListForLocation(Context context, Double latitude, Double longitude, GeocodingTaskListener listener)
+	{
+		return getAddressListForLocation(context, latitude, longitude, listener,10);
 	}
 
 	/**
@@ -37,10 +88,11 @@ public class Bearing
 	 * @param longitude The longitude to check
 	 * @param listener The listener to call back to
 	 */
-	public static ReverseGeocodingTask getAddressListForLocation(Context context, Double latitude, Double longitude, GeocodingTaskListener listener)
+	public static ReverseGeocodingTask getAddressListForLocation(Context context, Double latitude, Double longitude, GeocodingTaskListener listener, int resultCount)
 	{
 		ReverseGeocodingTask geocodingTask = new ReverseGeocodingTask(context);
 		geocodingTask.setGeocodingTaskListener(listener);
+		geocodingTask.setResultCount(resultCount);
 		geocodingTask.execute(latitude, longitude);
 
 		return geocodingTask;
