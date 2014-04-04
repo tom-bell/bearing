@@ -220,9 +220,10 @@ public class GeocodingTask extends AsyncTask<String, Void, List<Address>>
 				JSONObject geocodeData = new JSONObject(data.toString());
 				JSONArray addresses = geocodeData.getJSONArray("results");
 
-				List<Address> addressList = new ArrayList<Address>(addresses.length());
+				int resultsToRead = Math.min(resultCount, addresses.length());
 
-				for (int i = 0; i < addresses.length(); i++)
+				List<Address> addressList = new ArrayList<Address>(resultsToRead);
+				for (int i = 0; i < resultsToRead; i++)
 				{
 					JSONObject result = addresses.getJSONObject(0);
 
