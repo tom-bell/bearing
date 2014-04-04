@@ -36,6 +36,11 @@ public class GeocodingTask extends AsyncTask<String, Void, List<Address>>
 	private GeocodingTaskListener listener;
 
 	/**
+	 * The amount of results to be returned
+	 */
+	private int resultCount;
+
+	/**
 	 * Geocode the supplied request using the devices current locale
 	 * @param context The current app context
 	 */
@@ -52,6 +57,9 @@ public class GeocodingTask extends AsyncTask<String, Void, List<Address>>
 	{
 		this.context = context;
 		this.locale = locale;
+
+		// Set a default result count
+		this.resultCount = 10;
 	}
 
 	/**
@@ -126,7 +134,7 @@ public class GeocodingTask extends AsyncTask<String, Void, List<Address>>
 
 		try
 		{
-			List<Address> results = geocoder.getFromLocationName(query, 1);
+			List<Address> results = geocoder.getFromLocationName(query, resultCount);
 
 			if (results != null && results.size() > 0 && !isCancelled())
 			{
@@ -237,5 +245,14 @@ public class GeocodingTask extends AsyncTask<String, Void, List<Address>>
 		}
 
 		return null;
+	}
+
+	/**
+	 * Set the desired amount of results to return in the list
+	 * @param count The desired amount
+	 */
+	public void setResultCount(int count)
+	{
+		resultCount = count;
 	}
 }
