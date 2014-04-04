@@ -36,6 +36,11 @@ public class ReverseGeocodingTask extends AsyncTask<Double, Void, List<Address>>
 	private GeocodingTaskListener listener;
 
 	/**
+	 * Result count for th number of results
+	 */
+	private int resultCount;
+
+	/**
 	 * Reverse geocode the supplied request using the devices current locale
 	 * @param context The current app context
 	 */
@@ -52,6 +57,8 @@ public class ReverseGeocodingTask extends AsyncTask<Double, Void, List<Address>>
 	{
 		this.context = context;
 		this.locale = locale;
+
+		this.resultCount = 10;
 	}
 
 	/**
@@ -128,7 +135,7 @@ public class ReverseGeocodingTask extends AsyncTask<Double, Void, List<Address>>
 
 		try
 		{
-			List<Address> results = geocoder.getFromLocation(latitude, longitude, 1);
+			List<Address> results = geocoder.getFromLocation(latitude, longitude, resultCount);
 
 			if (results != null && results.size() > 0)
 			{
@@ -281,5 +288,14 @@ public class ReverseGeocodingTask extends AsyncTask<Double, Void, List<Address>>
 		}
 
 		return null;
+	}
+
+	/**
+	 * Set the result count for this request
+	 * @param count The number of results to return
+	 */
+	public void setResultCount(int count)
+	{
+		this.resultCount = count;
 	}
 }
