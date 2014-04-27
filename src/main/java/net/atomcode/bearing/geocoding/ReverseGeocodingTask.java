@@ -3,7 +3,6 @@ package net.atomcode.bearing.geocoding;
 import android.content.Context;
 import android.location.Address;
 import android.location.Geocoder;
-import android.os.AsyncTask;
 import android.util.Log;
 
 import org.apache.http.HttpResponse;
@@ -26,48 +25,24 @@ import java.util.Locale;
 /**
  * Task for geocoding a supplied query into latitude and longitude elements
  */
-public class ReverseGeocodingTask extends AsyncTask<Double, Void, List<Address>>
+public class ReverseGeocodingTask extends GeocodingTask<Double>
 {
-	private static final String WEB_API_URL = "https://maps.googleapis.com/maps/api/geocode/json";
-
-	private Context context;
-	private Locale locale;
-
-	private GeocodingTaskListener listener;
-
-	/**
-	 * Result count for th number of results
-	 */
-	private int resultCount;
-
 	/**
 	 * Reverse geocode the supplied request using the devices current locale
 	 * @param context The current app context
 	 */
-	public ReverseGeocodingTask(Context context)
+	public ReverseGeocodingTask(Context context, Double[]latlng)
 	{
-		this(context, context.getResources().getConfiguration().locale);
+		super(context, latlng);
 	}
 
 	/**
 	 * Reverse geocode the supplied request using the given explicit locale
 	 * @param locale The locale to use when geocoding the query
 	 */
-	public ReverseGeocodingTask(Context context, Locale locale)
+	public ReverseGeocodingTask(Context context, Double[] latlng, Locale locale)
 	{
-		this.context = context;
-		this.locale = locale;
-
-		this.resultCount = 10;
-	}
-
-	/**
-	 * Set the listener for this geocoding task
-	 * @param listener The listener to use
-	 */
-	public void setGeocodingTaskListener(GeocodingTaskListener listener)
-	{
-		this.listener = listener;
+		super(context, latlng, locale);
 	}
 
 	@Override protected List<Address> doInBackground(Double... params)
@@ -89,31 +64,6 @@ public class ReverseGeocodingTask extends AsyncTask<Double, Void, List<Address>>
 		{
 			return addressForRemoteGeocodedQuery(lat, lng);
 		}
-	}
-
-	@Override protected void onPostExecute(List<Address> address)
-	{
-		super.onPostExecute(address);
-		if (address != null)
-		{
-			if (listener != null)
-			{
-				listener.onLocationGeocoded(address);
-			}
-		}
-		else
-		{
-			listener.onLocationGeocodingFailed();
-		}
-	}
-
-	/**
-	 * Check to see if the device has native geocoding capability.
-	 * @return {@code true} if ability present, {@code false} otherwise.
-	 */
-	private boolean deviceHasNativeGeocoding()
-	{
-		return Geocoder.isPresent();
 	}
 
 	/**
@@ -290,14 +240,5 @@ public class ReverseGeocodingTask extends AsyncTask<Double, Void, List<Address>>
 		}
 
 		return null;
-	}
-
-	/**
-	 * Set the result count for this request
-	 * @param count The number of results to return
-	 */
-	public void setResultCount(int count)
-	{
-		this.resultCount = count;
 	}
 }
