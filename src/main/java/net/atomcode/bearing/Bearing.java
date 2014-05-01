@@ -11,6 +11,7 @@ import net.atomcode.bearing.geocoding.GeocodingTask;
 import net.atomcode.bearing.geocoding.QueryGeocodingTask;
 import net.atomcode.bearing.geocoding.ReverseGeocodingTask;
 import net.atomcode.bearing.location.CurrentLocationTask;
+import net.atomcode.bearing.location.PeriodicLocationTask;
 
 /**
  * Entry class for Bearing library.
@@ -149,4 +150,14 @@ public class Bearing
 	{
 		return new CurrentLocationTask(context);
 	}
+
+	/**
+	 * Periodically get the users location based on the set values for update times
+	 * @return The task to configure and start
+	 */
+	public PeriodicLocationTask track()
+	{
+		return new PeriodicLocationTask(context);
+	}
+
 }
