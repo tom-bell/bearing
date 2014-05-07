@@ -20,7 +20,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Task for geocoding a supplied query into latitude and longitude elements
@@ -32,10 +31,10 @@ public class QueryGeocodingTask extends GeocodingTask<String>
 		super(context, queries);
 	}
 
-	public QueryGeocodingTask(Context context, String[] queries, Locale locale)
-	{
-		super(context, queries, locale);
-	}
+//	public QueryGeocodingTask(Context context, String[] queries, Locale locale)
+//	{
+//		super(context, queries, locale);
+//	}
 
 	@Override protected List<Address> doInBackground(String... params)
 	{
@@ -73,7 +72,7 @@ public class QueryGeocodingTask extends GeocodingTask<String>
 	{
 		Geocoder geocoder = new Geocoder(context, locale);
 
-		List<Address> results = null;
+		List<Address> results;
 
 		try
 		{
@@ -149,6 +148,7 @@ public class QueryGeocodingTask extends GeocodingTask<String>
 			{
 				"results": [
 					{
+						"formatted_address": <formatted_address>,
 						"geometry": {
 							"location": {
 								"lat": <latitude>
@@ -158,7 +158,7 @@ public class QueryGeocodingTask extends GeocodingTask<String>
 					}
 				]
 			}
-			 */
+			*/
 
 			if (!isCancelled())
 			{
@@ -178,6 +178,15 @@ public class QueryGeocodingTask extends GeocodingTask<String>
 					Address address = new Address(locale);
 					address.setLatitude(locationData.getDouble("lat"));
 					address.setLongitude(locationData.getDouble("lng"));
+
+					// Temporary fix. TODO: Proper parsing.
+					address.setAddressLine(0, result.getString("formatted_address"));
+					JSONArray addressComponents = result.getJSONArray("address_components");
+					for (int componentIndex = 0; componentIndex < addressComponents.length(); componentIndex++)
+					{
+						JSONObject component = addressComponents.getJSONObject(componentIndex);
+						address.setAddressLine(componentIndex + 1, component.getString("short_name"));
+					}
 
 					addressList.add(address);
 				}
