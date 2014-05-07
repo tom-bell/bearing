@@ -20,7 +20,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Task for geocoding a supplied query into latitude and longitude elements
@@ -32,10 +31,10 @@ public class QueryGeocodingTask extends GeocodingTask<String>
 		super(context, queries);
 	}
 
-	public QueryGeocodingTask(Context context, String[] queries, Locale locale)
-	{
-		super(context, queries, locale);
-	}
+//	public QueryGeocodingTask(Context context, String[] queries, Locale locale)
+//	{
+//		super(context, queries, locale);
+//	}
 
 	@Override protected List<Address> doInBackground(String... params)
 	{
@@ -73,7 +72,7 @@ public class QueryGeocodingTask extends GeocodingTask<String>
 	{
 		Geocoder geocoder = new Geocoder(context, locale);
 
-		List<Address> results = null;
+		List<Address> results;
 
 		try
 		{
@@ -159,7 +158,7 @@ public class QueryGeocodingTask extends GeocodingTask<String>
 					}
 				]
 			}
-			 */
+			*/
 
 			if (!isCancelled())
 			{
