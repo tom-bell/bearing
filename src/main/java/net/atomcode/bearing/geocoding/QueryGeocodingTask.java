@@ -149,6 +149,7 @@ public class QueryGeocodingTask extends GeocodingTask<String>
 			{
 				"results": [
 					{
+						"formatted_address": <formatted_address>,
 						"geometry": {
 							"location": {
 								"lat": <latitude>
@@ -178,6 +179,15 @@ public class QueryGeocodingTask extends GeocodingTask<String>
 					Address address = new Address(locale);
 					address.setLatitude(locationData.getDouble("lat"));
 					address.setLongitude(locationData.getDouble("lng"));
+
+					// Temporary fix. TODO: Proper parsing.
+					address.setAddressLine(0, result.getString("formatted_address"));
+					JSONArray addressComponents = result.getJSONArray("address_components");
+					for (int componentIndex = 0; componentIndex < addressComponents.length(); componentIndex++)
+					{
+						JSONObject component = addressComponents.getJSONObject(componentIndex);
+						address.setAddressLine(componentIndex + 1, component.getString("short_name"));
+					}
 
 					addressList.add(address);
 				}
