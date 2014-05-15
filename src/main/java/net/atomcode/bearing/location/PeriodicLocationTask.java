@@ -246,9 +246,16 @@ public class PeriodicLocationTask
 	@SuppressWarnings("unused")
 	public void cancel()
 	{
-		currentLocationListener.client.removeLocationUpdates(currentLocationListener);
-		currentLocationListener.client.disconnect();
-		currentLocationListener.locationManager.removeUpdates(currentLocationListener);
+		if (currentLocationListener.client != null)
+		{
+			currentLocationListener.client.removeLocationUpdates(currentLocationListener);
+			currentLocationListener.client.disconnect();
+		}
+
+		if (currentLocationListener.locationManager != null)
+		{
+			currentLocationListener.locationManager.removeUpdates(currentLocationListener);
+		}
 
 		if (currentLocationListener != null)
 		{
