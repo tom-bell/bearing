@@ -30,10 +30,9 @@ public abstract class LocationTask implements BearingTask
 
 	protected LocationListener listener;
 
-	protected long timeout = 0; // 0 = no timeout
-	protected boolean running = false;
-
 	protected int fallback = FALLBACK_NONE; // No fallback by default
+	protected long timeout = 0; // > 0 means no timeout
+	protected boolean running = false;
 
 	protected String taskId;
 
