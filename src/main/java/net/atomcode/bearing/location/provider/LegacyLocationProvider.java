@@ -1,6 +1,7 @@
 package net.atomcode.bearing.location.provider;
 
 import android.content.Context;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -74,14 +75,14 @@ public class LegacyLocationProvider implements LocationProvider
 				{
 					if (listener != null)
 					{
-						listener.onSuccess(lastKnownUserLocation);
+						listener.onUpdate(lastKnownUserLocation);
 						return null;
 					}
 				}
 			}
 		}
 
-		String requestId = UUID.randomUUID().toString();
+		final String requestId = UUID.randomUUID().toString();
 
 		runningRequests.put(requestId, new android.location.LocationListener()
 		{
@@ -89,9 +90,9 @@ public class LegacyLocationProvider implements LocationProvider
 			{
 				if (listener != null)
 				{
-					listener.onSuccess(location);
+					listener.onUpdate(location);
 				}
-				runningRequests.remove(this);
+				runningRequests.remove(requestId);
 			}
 
 			@Override public void onStatusChanged(String provider, int status, Bundle extras)
@@ -116,8 +117,61 @@ public class LegacyLocationProvider implements LocationProvider
 	}
 
 	@Override
-	public String requestRecurringLocationUpdates(LocationProviderRequest request, LocationListener listener)
+	public String requestRecurringLocationUpdates(final LocationProviderRequest request, final LocationListener listener)
 	{
+		String requestId = UUID.randomUUID().toString();
+
+		int powerCriteria = Criteria.POWER_LOW;
+		int accuracyCriteria = Criteria.ACCURACY_MEDIUM;
+
+		switch (request.accuracy)
+		{
+			case LOW:
+				powerCriteria = Criteria.POWER_LOW;
+				accuracyCriteria = Criteria.ACCURACY_COARSE;
+				break;
+			case MEDIUM:
+				powerCriteria = Criteria.POWER_MEDIUM;
+				accuracyCriteria = Criteria.ACCURACY_MEDIUM;
+				break;
+			case HIGH:
+				powerCriteria = Criteria.POWER_HIGH;
+				accuracyCriteria = Criteria.ACCURACY_FINE;
+		}
+
+		Criteria criteria = new Criteria();
+		criteria.setPowerRequirement(powerCriteria);
+		criteria.setAccuracy(accuracyCriteria);
+
+		String bestProvider = locationManager.getBestProvider(criteria, false);
+
+		runningRequests.put(requestId, new android.location.LocationListener()
+		{
+			@Override public void onLocationChanged(Location location)
+			{
+				if (listener != null)
+				{
+					listener.onUpdate(location);
+				}
+			}
+
+			@Override public void onStatusChanged(String provider, int status, Bundle extras)
+			{
+
+			}
+
+			@Override public void onProviderEnabled(String provider)
+			{
+
+			}
+
+			@Override public void onProviderDisabled(String provider)
+			{
+
+			}
+		});
+
+		locationManager.requestLocationUpdates(bestProvider, request.trackingRate, 0, runningRequests.get(requestId));
 		return null;
 	}
 

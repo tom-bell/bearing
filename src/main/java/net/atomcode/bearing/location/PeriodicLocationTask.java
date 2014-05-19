@@ -16,11 +16,11 @@ import com.google.android.gms.location.LocationRequest;
 import net.atomcode.bearing.Bearing;
 
 /**
- * Gets the users current location using the best available service
+ * Gets the users current location over distance using the best available service
  */
 public class PeriodicLocationTask
 {
-	private static final long DEFAULT_INTERNAL_UPDATE_INTERVAL = 5 * 60 * 1000;
+	private static final long DEFAULT_INTERNAL_UPDATE_INTERVAL = 5 * 60 * 1000; // Five min default
 
 	public interface Listener
 	{
@@ -62,6 +62,7 @@ public class PeriodicLocationTask
 		{
 			LocationRequest request = new LocationRequest();
 			request.setInterval(locationCheckRate);
+			request.setFastestInterval(locationCheckRate);
 
 			int priority = LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY;
 			switch (desiredAccuracy)

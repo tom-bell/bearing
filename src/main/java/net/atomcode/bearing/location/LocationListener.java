@@ -9,7 +9,7 @@ import net.atomcode.bearing.BearingListener;
  */
 public abstract class LocationListener implements BearingListener
 {
-	public abstract void onSuccess(Location location);
+	public abstract void onUpdate(Location location);
 
 	// Do nothing here, allows for simpler listeners
 	@Override public void onTimeout() {}
