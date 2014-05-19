@@ -2,6 +2,8 @@ package net.atomcode.bearing.location;
 
 import android.content.Context;
 import android.location.Location;
+import android.os.Handler;
+import android.os.Looper;
 
 import net.atomcode.bearing.Bearing;
 import net.atomcode.bearing.BearingTask;
@@ -17,11 +19,6 @@ import java.util.TimerTask;
 public abstract class LocationTask implements BearingTask
 {
 	/**
-	 * Do nothing when a timeout occurs
-	 */
-	public static final int FALLBACK_NONE = 0x0;
-
-	/**
 	 * Use a cached location when a timeout occurs
 	 */
 	public static final int FALLBACK_CACHE = 0x1;
@@ -33,7 +30,7 @@ public abstract class LocationTask implements BearingTask
 
 	protected LocationListener listener;
 
-	protected long timeout = 3000; // 3 seconds by default
+	protected long timeout = 0; // 0 = no timeout
 	protected boolean running = false;
 
 	protected int fallback = FALLBACK_NONE; // No fallback by default
@@ -60,21 +57,25 @@ public abstract class LocationTask implements BearingTask
 	public BearingTask start()
 	{
 		running = true;
-		new Timer().schedule(new TimerTask() {
-			@Override
-			public void run()
+		if (timeout > 0)
+		{
+			new Timer().schedule(new TimerTask()
 			{
-				if (isRunning())
+				@Override
+				public void run()
 				{
-					cancel();
-					if (listener != null)
+					if (isRunning())
 					{
-						listener.onTimeout();
-						handleTimeoutFallback();
+						LocationTask.this.cancel();
+						if (listener != null)
+						{
+							listener.onTimeout();
+							handleTimeoutFallback();
+						}
 					}
 				}
-			}
-		}, timeout);
+			}, timeout);
+		}
 
 		return this;
 	}
@@ -82,11 +83,11 @@ public abstract class LocationTask implements BearingTask
 	@Override
 	public void cancel()
 	{
+		running = false;
 		if (taskId != null)
 		{
 			locationProvider.cancelUpdates(taskId);
 		}
-		running = false;
 	}
 
 	/**
@@ -134,21 +135,13 @@ public abstract class LocationTask implements BearingTask
 	}
 
 	/**
-	 * Timeout the request if it has not completed in the given time
-	 * @param timeout The timeout in milliseconds
-	 */
-	public LocationTask timeout(long timeout)
-	{
-		this.timeout = timeout;
-		return this;
-	}
-
-	/**
 	 * Fallback for if the timeout is reached
 	 */
-	public LocationTask fallback(int fallback)
+	@Override
+	public LocationTask fallback(int fallback, long timeout)
 	{
 		this.fallback = fallback;
+		this.timeout = timeout;
 		return this;
 	}
 
@@ -164,17 +157,23 @@ public abstract class LocationTask implements BearingTask
 	 */
 	private void handleTimeoutFallback()
 	{
-		if (fallback == FALLBACK_CACHE)
+		new Handler(Looper.getMainLooper()).post(new Runnable()
 		{
-			Location cachedLocation = locationProvider.getLastKnownLocation(request);
-			if (cachedLocation != null)
+			@Override public void run()
 			{
-				listener.onUpdate(cachedLocation);
+				if (fallback == FALLBACK_CACHE)
+				{
+					Location cachedLocation = locationProvider.getLastKnownLocation(request);
+					if (cachedLocation != null)
+					{
+						listener.onUpdate(cachedLocation);
+					}
+					else
+					{
+						listener.onFailure();
+					}
+				}
 			}
-			else
-			{
-				listener.onFailure();
-			}
-		}
+		});
 	}
 }

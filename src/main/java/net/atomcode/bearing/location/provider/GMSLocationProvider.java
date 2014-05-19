@@ -3,6 +3,7 @@ package net.atomcode.bearing.location.provider;
 import android.content.Context;
 import android.location.Location;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
@@ -79,7 +80,7 @@ public class GMSLocationProvider implements LocationProvider, GooglePlayServices
 	{
 		final String requestId = UUID.randomUUID().toString();
 
-		if (!locationClient.isConnected() && !locationClient.isConnecting())
+		if (!locationClient.isConnected())
 		{
 			pendingRequests.put(requestId, new Runnable()
 			{
@@ -98,9 +99,25 @@ public class GMSLocationProvider implements LocationProvider, GooglePlayServices
 	}
 
 	@Override
-	public String requestRecurringLocationUpdates(LocationProviderRequest request, LocationListener listener)
+	public String requestRecurringLocationUpdates(final LocationProviderRequest request, final LocationListener listener)
 	{
-		return null;
+		final String requestId = UUID.randomUUID().toString();
+
+		if (!locationClient.isConnected())
+		{
+			pendingRequests.put(requestId, new Runnable() {
+				@Override public void run()
+				{
+					internalRequestRecurringUpdates(requestId, request, listener);
+				}
+			});
+			locationClient.connect();
+		}
+		else
+		{
+			internalRequestRecurringUpdates(requestId, request, listener);
+		}
+		return requestId;
 	}
 
 	@Override
@@ -121,6 +138,82 @@ public class GMSLocationProvider implements LocationProvider, GooglePlayServices
 				locationClient.disconnect();
 			}
 		}
+	}
+
+	/**
+	 * Internal request for recurring updates
+	 */
+	private void internalRequestRecurringUpdates(final String requestId, final LocationProviderRequest request, final LocationListener listener)
+	{
+		LocationRequest gmsRequest = getRecurringLocationRequestForBearingRequest(request);
+
+		runningRequests.put(requestId, new com.google.android.gms.location.LocationListener()
+		{
+			private long lastReportedTimestamp = -1;
+			private Location lastReportedLocation;
+
+			@Override public void onLocationChanged(Location location)
+			{
+				long currentTimestamp = System.currentTimeMillis() / 1000;
+				long timeSinceLastReport = currentTimestamp - lastReportedTimestamp;
+
+				Log.d("Bearing Location Tracker", "onLocationChanged last reported: " + timeSinceLastReport + " seconds ago (Fallback at " + request.trackingFallback / 1000 + ")");
+
+				if (lastReportedTimestamp == -1 || timeSinceLastReport > (request.trackingFallback / 1000))
+				{
+					Log.d("Bearing Location Tracker", "Tracking fallback, forcing update");
+					lastReportedLocation = location;
+					lastReportedTimestamp = currentTimestamp;
+
+					// Force report
+					if (listener != null)
+					{
+						listener.onUpdate(location);
+					}
+					return;
+				}
+
+				if (request.trackingDisplacement != -1 && location.distanceTo(lastReportedLocation) > request.trackingDisplacement)
+				{
+					lastReportedLocation = location;
+					lastReportedTimestamp = currentTimestamp;
+
+					if (listener != null)
+					{
+						listener.onUpdate(location);
+					}
+				}
+			}
+		});
+
+		locationClient.requestLocationUpdates(gmsRequest, runningRequests.get(requestId));
+	}
+
+	/**
+	 * Convert bearing request to GMS location request
+	 */
+	private LocationRequest getRecurringLocationRequestForBearingRequest(LocationProviderRequest request)
+	{
+		LocationRequest gmsRequest = new LocationRequest();
+
+		int priority = LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY;
+		switch (request.accuracy)
+		{
+			case LOW:
+				priority = LocationRequest.PRIORITY_LOW_POWER;
+				break;
+			case MEDIUM:
+				priority = LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY;
+				break;
+			case HIGH:
+				priority = LocationRequest.PRIORITY_HIGH_ACCURACY;
+		}
+		gmsRequest.setPriority(priority);
+
+		gmsRequest.setFastestInterval(request.trackingRate);
+		gmsRequest.setInterval(request.trackingRate);
+
+		return gmsRequest;
 	}
 
 	/**

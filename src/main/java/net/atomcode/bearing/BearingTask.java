@@ -5,6 +5,8 @@ package net.atomcode.bearing;
  */
 public interface BearingTask
 {
+	public static final int FALLBACK_NONE = 0x0;
+
 	/**
 	 * Begin the defined task
 	 */
@@ -28,7 +30,8 @@ public interface BearingTask
 
 	/**
 	 * Timeout the task if it has not completed in the given time period
+	 * @param action The action to perform if the task times out, default FALLBACK_NONE
 	 * @param timeout The timeout in milliseconds
 	 */
-	public BearingTask timeout(long timeout);
+	public BearingTask fallback(int action, long timeout);
 }
