@@ -169,7 +169,7 @@ public abstract class LocationTask implements BearingTask
 			Location cachedLocation = locationProvider.getLastKnownLocation(request);
 			if (cachedLocation != null)
 			{
-				listener.onSuccess(cachedLocation);
+				listener.onUpdate(cachedLocation);
 			}
 			else
 			{

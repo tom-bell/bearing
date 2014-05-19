@@ -136,7 +136,7 @@ public class GMSLocationProvider implements LocationProvider, GooglePlayServices
 			{
 				if (listener != null)
 				{
-					listener.onSuccess(location);
+					listener.onUpdate(location);
 				}
 
 				runningRequests.remove(requestId);
