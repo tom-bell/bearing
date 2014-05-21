@@ -145,7 +145,7 @@ public class GMSLocationProvider implements LocationProvider, GooglePlayServices
 	 */
 	private void internalRequestRecurringUpdates(final String requestId, final LocationProviderRequest request, final LocationListener listener)
 	{
-		LocationRequest gmsRequest = getRecurringLocationRequestForBearingRequest(request);
+		final LocationRequest gmsRequest = getRecurringLocationRequestForBearingRequest(request);
 
 		runningRequests.put(requestId, new com.google.android.gms.location.LocationListener()
 		{
@@ -186,7 +186,21 @@ public class GMSLocationProvider implements LocationProvider, GooglePlayServices
 			}
 		});
 
-		locationClient.requestLocationUpdates(gmsRequest, runningRequests.get(requestId));
+		if (locationClient.isConnected())
+		{
+			locationClient.requestLocationUpdates(gmsRequest, runningRequests.get(requestId));
+		}
+		else
+		{
+			final String connectRequestId = UUID.randomUUID().toString();
+			pendingRequests.put(connectRequestId, new Runnable()
+			{
+				@Override public void run()
+				{
+					locationClient.requestLocationUpdates(gmsRequest, runningRequests.get(requestId));
+				}
+			});
+		}
 	}
 
 	/**
