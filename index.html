@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Bearing : Android location acquisition. Simplified." />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Bearing</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/tom-bell/Bearing">View on GitHub</a>
+
+          <h1 id="project_title">Bearing</h1>
+          <h2 id="project_tagline">Android location acquisition. Simplified.</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/tom-bell/Bearing/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/tom-bell/Bearing/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a name="bearing" class="anchor" href="#bearing"><span class="octicon octicon-link"></span></a>Bearing</h1>
+
+<p>The Bearing library is for simplifying location based requests into a simple, fluent API.
+All requests are asynchronous and callback to configured listeners</p>
+
+<h2>
+<a name="current-location" class="anchor" href="#current-location"><span class="octicon octicon-link"></span></a>Current location</h2>
+
+<p>Get the current location of the user</p>
+
+<pre><code>Bearing.with(context).locate().listen({...}).start();
+</code></pre>
+
+<p>The current location module also allows the definition of a required accuracy of the request.</p>
+
+<pre><code>Bearing.with(context).locate().accuracy(Accuracy.HIGH).listen({...}).start();
+</code></pre>
+
+<p>The default accuracy is MEDIUM which gives the location to the nearest 50m</p>
+
+<h2>
+<a name="geocoding" class="anchor" href="#geocoding"><span class="octicon octicon-link"></span></a>Geocoding</h2>
+
+<p>To get a list of possible addresses with lat,lng coordinates for a given query</p>
+
+<pre><code>Bearing.with(context).geocode("New York, NY").listen({...}).start();
+</code></pre>
+
+<p>Other configurable options include the number of results to return (Default: 10)</p>
+
+<pre><code>Bearing.with(context).geocode("New York, NY").results(5).listen({...}).start();
+</code></pre>
+
+<h2>
+<a name="reverse-geocoding" class="anchor" href="#reverse-geocoding"><span class="octicon octicon-link"></span></a>Reverse Geocoding</h2>
+
+<p>Bearing also supports reverse geocoding. The action of turning a lat,lng pair into an address</p>
+
+<pre><code>Location location;
+Bearing.with(context).geocode(location).listen({...}).start();
+</code></pre>
+
+<p>Bearing supports Reverse Geocoding for the following objects:</p>
+
+<pre><code>android.location.Location;
+android.location.Address;
+com.google.android.gms.maps.model.LatLng;
+</code></pre>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Bearing maintained by <a href="https://github.com/tom-bell">tom-bell</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
