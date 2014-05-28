@@ -1,3 +1,7 @@
-<manifest package="net.atomcode.bearing">
-    <application/>
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    package="net.atomcode.bearing">
+
+    <application android:allowBackup="true"/>
+
 </manifest>
