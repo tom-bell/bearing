@@ -12,6 +12,10 @@ repositories {
 }
 
 apply plugin: 'android-library'
+apply plugin: 'maven'
+
+group = "net.atomcode"
+version = "2.2.2"
 
 android {
     compileSdkVersion 19
@@ -21,10 +25,21 @@ android {
         minSdkVersion 9
         targetSdkVersion 19
         versionCode 8
-        versionName "2.2.2"
+        versionName project.version
     }
 }
 
 dependencies {
     compile 'com.google.android.gms:play-services:4.3.23'
 }
+
+task installArchives(type: Upload) {
+    description "Installs the artifacts to a local maven repository"
+    configuration = configurations['archives']
+    repositories {
+        mavenDeployer {
+            repository url: "file://${System.properties['user.home']}/.m2/repository"
+        }
+    }
+}
+
