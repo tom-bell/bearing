@@ -1,0 +1,11 @@
+.gradle/
+build/
+.idea/
+.bundle/
+vendor/
+
+*.iml
+*.lock
+
+local.properties
+
