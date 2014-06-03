@@ -1,5 +1,11 @@
-local.properties
 .gradle/
-build
-*.iml
+build/
 .idea/
+vendor/
+.bundle/
+
+*.iml
+*.lock
+
+local.properties
+
