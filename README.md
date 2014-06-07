@@ -1,8 +1,23 @@
 Bearing
-==============
+=======
 
 The Bearing library is for simplifying location based requests into a simple, fluent API.
 All requests are asynchronous and callback to configured listeners
+
+## Using bearing in your project
+
+The library is on maven central, and can be included in your gradle project by
+adding:
+
+    compile "net.atomcode:bearing:<latest_version>"
+
+Or, if using maven by adding:
+
+    <dependency>
+        <groupId>net.atomcode</groupId>
+        <artifactId>bearing</artifactId>
+        <version>(latest version)</version>
+    </dependency>
 
 ## Current location
 
@@ -15,6 +30,24 @@ The current location module also allows the definition of a required accuracy of
 	Bearing.with(context).locate().accuracy(Accuracy.HIGH).listen({...}).start();
 
 The default accuracy is MEDIUM which gives the location to the nearest 50m
+
+## Tracking (EXPERIMENTAL)
+
+There is currently experimental support for user tracking
+
+    Bearing.with(context).track().listen({...}).start();
+
+Tracking currently uses a LOT of battery by default, and needs configuring to
+use low power sources, and a large step time. i.e.
+
+    Bearing.with(context).track()
+        .displacement(1000)
+        .rate(60*60*1000)
+        .accuracy(Accuracy.LOW)
+        .listen({...})
+        .start();
+
+Please use this feature with caution it is still a work in progress.
 
 ## Geocoding
 
