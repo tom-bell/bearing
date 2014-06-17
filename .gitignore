@@ -9,3 +9,6 @@ vendor/
 
 local.properties
 
+# Vim
+*.swp
+
