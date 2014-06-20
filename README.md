@@ -2,7 +2,9 @@ Bearing
 =======
 
 The Bearing library is for simplifying location based requests into a simple, fluent API.
-All requests are asynchronous and callback to configured listeners
+All requests are asynchronous and callback to configured listeners.
+
+This is a project for the community. All pull requests and bug reports are welcome and encouraged!
 
 ## Using bearing in your project
 
@@ -18,6 +20,16 @@ Or, if using maven by adding:
         <artifactId>bearing</artifactId>
         <version>(latest version)</version>
     </dependency>
+	
+## Android permissions
+
+Currently, in order to use the library your app will need the following permissions in the android manifest:
+
+	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+	<uses-permission android:name="android.permission.INTERNET"/>
+	
+The location permission is, naturally for getting the location of the user. Only FINE is required here as FINE implies COARSE.
+The internet permission is required for geocoding and some fallback requests.
 
 ## Current location
 
