@@ -3,7 +3,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.9.+'
+        classpath 'com.android.tools.build:gradle:0.12.+'
     }
 }
 
@@ -11,25 +11,24 @@ repositories {
     mavenCentral()
 }
 
-apply plugin: 'android-library'
+apply plugin: 'com.android.library'
 
 version VERSION_NAME
 
 android {
     compileSdkVersion 19
-    buildToolsVersion "19.0.3"
+    buildToolsVersion "19.1.0"
 
     defaultConfig {
         minSdkVersion 9
-        targetSdkVersion 19
+        targetSdkVersion 20
         versionCode VERSION_CODE.toInteger()
         versionName VERSION_NAME
     }
 }
 
 dependencies {
-    compile 'com.google.android.gms:play-services:4.3.23'
+    compile 'com.google.android.gms:play-services:4.4.52'
 }
 
 apply from: 'gradle/sonatype.gradle'
-
