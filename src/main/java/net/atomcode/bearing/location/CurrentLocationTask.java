@@ -29,7 +29,10 @@ public class CurrentLocationTask extends LocationTask
 				{
 					// Cancel current task
 					running = false;
-					listener.onUpdate(location);
+                    if (listener != null)
+                    {
+					    listener.onUpdate(location);
+                    }
 				}
 			}
 
