@@ -59,5 +59,7 @@ android.libraryVariants.all { variant ->
 }
 
 dependencies {
+    // Explicit dependency on support lib to allow sdk-manager plugin to prepare it
+    compile 'com.android.support:support-v4:21.0.0'
     compile 'com.google.android.gms:play-services:6.1.11'
 }
