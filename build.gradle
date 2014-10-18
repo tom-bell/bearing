@@ -18,7 +18,7 @@ apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.library'
 
 group 'net.atomcode'
-version '2.2.4'
+version '2.2.5'
 
 android {
     compileSdkVersion 21
@@ -36,25 +36,26 @@ def calculatedVersionCode() {
     String[] versionElements = project.version.toString().split("\\.");
     StringBuilder builder = new StringBuilder();
     versionElements.each { elem ->
-        builder.append(elem.format("%0" + (4 - elem.length()) + "d", elem.toInteger()))
+        builder.append(elem.format("%0" + (4 - elem.length().toInteger()) + "d", elem.toInteger()))
     }
     return Integer.valueOf(builder.toString());
 }
 
-task androidSourcesJar(type: Jar) {
-    classifier = 'sources'
-}
+android.libraryVariants.all { variant ->
+    def variantName = variant.name.capitalize();
+    task("generate${variantName}Javadoc", type: Javadoc) {
+        description "Generates Javadoc for the ${variantName} build"
+        source = variant.javaCompile.source
+        ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
+        classpath = files(variant.javaCompile.classpath.files, ext.androidJar)
 
-task printSourceSets << {
-    android.sourceSets.each { set ->
-        set.getJava().each { j ->
-            println(j);
+        options {
+            links "http://docs.oracle.com/javase/7/docs/api/"
+            linksOffline "http://d.android.com/reference", "${android.sdkDirectory}/docs/reference"
         }
+        exclude '**/BuildConfig.java'
+        exclude '**/R.java'
     }
-}
-
-artifacts {
-    archives androidSourcesJar
 }
 
 dependencies {
