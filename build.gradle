@@ -3,7 +3,8 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.12.+'
+        classpath 'com.android.tools.build:gradle:0.13.2'
+        classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
     }
 }
 
@@ -11,24 +12,51 @@ repositories {
     mavenCentral()
 }
 
+apply plugin: 'maven'
+apply plugin: 'signing'
+apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.library'
 
-version VERSION_NAME
+group 'net.atomcode'
+version '2.2.4'
 
 android {
-    compileSdkVersion 19
-    buildToolsVersion "19.1.0"
+    compileSdkVersion 21
+    buildToolsVersion "21.0.1"
 
     defaultConfig {
         minSdkVersion 9
-        targetSdkVersion 20
-        versionCode VERSION_CODE.toInteger()
-        versionName VERSION_NAME
+        targetSdkVersion 21
+        versionCode calculatedVersionCode()
+        versionName project.version
     }
 }
 
-dependencies {
-    compile 'com.google.android.gms:play-services:4.4.52'
+def calculatedVersionCode() {
+    String[] versionElements = project.version.toString().split("\\.");
+    StringBuilder builder = new StringBuilder();
+    versionElements.each { elem ->
+        builder.append(elem.format("%0" + (4 - elem.length()) + "d", elem.toInteger()))
+    }
+    return Integer.valueOf(builder.toString());
 }
 
-apply from: 'gradle/sonatype.gradle'
+task androidSourcesJar(type: Jar) {
+    classifier = 'sources'
+}
+
+task printSourceSets << {
+    android.sourceSets.each { set ->
+        set.getJava().each { j ->
+            println(j);
+        }
+    }
+}
+
+artifacts {
+    archives androidSourcesJar
+}
+
+dependencies {
+    compile 'com.google.android.gms:play-services:6.1.11'
+}
