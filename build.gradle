@@ -16,13 +16,14 @@ apply plugin: 'maven'
 apply plugin: 'signing'
 apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.library'
+apply from: 'gradle/sonatype.gradle'
 
 group 'net.atomcode'
 version '2.2.5'
 
 android {
     compileSdkVersion 21
-    buildToolsVersion "21.1.1"
+    buildToolsVersion "21.1.2"
 
     defaultConfig {
         minSdkVersion 9
