@@ -6,15 +6,14 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesClient;
-import com.google.android.gms.location.LocationClient;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 
 import net.atomcode.bearing.location.LocationListener;
 import net.atomcode.bearing.location.LocationProvider;
 import net.atomcode.bearing.location.LocationProviderRequest;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -22,8 +21,10 @@ import java.util.UUID;
 /**
  * Provide location using Google Play services
  */
-public class GMSLocationProvider implements LocationProvider, GooglePlayServicesClient.ConnectionCallbacks, GooglePlayServicesClient.OnConnectionFailedListener
+public class GMSLocationProvider implements LocationProvider, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener
 {
+	private static final boolean LOG = false;
+
 	private static GMSLocationProvider instance;
 
 	public static GMSLocationProvider getInstance()
@@ -35,7 +36,7 @@ public class GMSLocationProvider implements LocationProvider, GooglePlayServices
 		return instance;
 	}
 
-	private LocationClient locationClient;
+	private GoogleApiClient apiClient;
 
 	private HashMap<String, Runnable> pendingRequests;
 	private Map<String, com.google.android.gms.location.LocationListener> runningRequests;
@@ -43,9 +44,13 @@ public class GMSLocationProvider implements LocationProvider, GooglePlayServices
 	@Override
 	public void create(Context context)
 	{
-		pendingRequests = new HashMap<String, Runnable>();
-		runningRequests = new HashMap<String, com.google.android.gms.location.LocationListener>();
-		locationClient = new LocationClient(context, this, this);
+		pendingRequests = new HashMap<>();
+		runningRequests = new HashMap<>();
+		apiClient = new GoogleApiClient.Builder(context)
+				.addConnectionCallbacks(this)
+				.addOnConnectionFailedListener(this)
+				.addApi(LocationServices.API)
+				.build();
 	}
 
 	@Override
@@ -53,24 +58,24 @@ public class GMSLocationProvider implements LocationProvider, GooglePlayServices
 	{
 		pendingRequests.clear();
 
-		if (locationClient.isConnected() || locationClient.isConnecting())
+		if (apiClient.isConnected() || apiClient.isConnecting())
 		{
 			for (com.google.android.gms.location.LocationListener runningRequest : runningRequests.values())
 			{
-				locationClient.removeLocationUpdates(runningRequest);
+				LocationServices.FusedLocationApi.removeLocationUpdates(apiClient, runningRequest);
 			}
 			runningRequests.clear();
 
-			locationClient.disconnect();
+			apiClient.disconnect();
 		}
 	}
 
 	@Override
 	public Location getLastKnownLocation(LocationProviderRequest request)
 	{
-		if (locationClient.isConnected())
+		if (apiClient.isConnected())
 		{
-			return locationClient.getLastLocation();
+			return LocationServices.FusedLocationApi.getLastLocation(apiClient);
 		}
 		return null;
 	}
@@ -80,7 +85,7 @@ public class GMSLocationProvider implements LocationProvider, GooglePlayServices
 	{
 		final String requestId = UUID.randomUUID().toString();
 
-		if (!locationClient.isConnected())
+		if (!apiClient.isConnected())
 		{
 			pendingRequests.put(requestId, new Runnable()
 			{
@@ -89,7 +94,7 @@ public class GMSLocationProvider implements LocationProvider, GooglePlayServices
 					internalRequestSingleUpdate(requestId, request, listener);
 				}
 			});
-			locationClient.connect();
+			apiClient.connect();
 		}
 		else
 		{
@@ -103,7 +108,7 @@ public class GMSLocationProvider implements LocationProvider, GooglePlayServices
 	{
 		final String requestId = UUID.randomUUID().toString();
 
-		if (!locationClient.isConnected())
+		if (!apiClient.isConnected())
 		{
 			pendingRequests.put(requestId, new Runnable() {
 				@Override public void run()
@@ -111,7 +116,7 @@ public class GMSLocationProvider implements LocationProvider, GooglePlayServices
 					internalRequestRecurringUpdates(requestId, request, listener);
 				}
 			});
-			locationClient.connect();
+			apiClient.connect();
 		}
 		else
 		{
@@ -130,12 +135,12 @@ public class GMSLocationProvider implements LocationProvider, GooglePlayServices
 
 		if (runningRequests.containsKey(requestId))
 		{
-			locationClient.removeLocationUpdates(runningRequests.get(requestId));
+			LocationServices.FusedLocationApi.removeLocationUpdates(apiClient, runningRequests.get(requestId));
 			runningRequests.remove(requestId);
 
 			if (runningRequests.size() == 0)
 			{
-				locationClient.disconnect();
+				apiClient.disconnect();
 			}
 		}
 	}
@@ -157,11 +162,17 @@ public class GMSLocationProvider implements LocationProvider, GooglePlayServices
 				long currentTimestamp = System.currentTimeMillis() / 1000;
 				long timeSinceLastReport = currentTimestamp - lastReportedTimestamp;
 
-				Log.d("Bearing Location Tracker", "onLocationChanged last reported: " + timeSinceLastReport + " seconds ago (Fallback at " + request.trackingFallback / 1000 + ")");
+				if (LOG)
+				{
+					Log.d("Bearing Location Tracker", "onLocationChanged last reported: " + timeSinceLastReport + " seconds ago (Fallback at " + request.trackingFallback / 1000 + ")");
+				}
 
 				if (lastReportedTimestamp == -1 || timeSinceLastReport > (request.trackingFallback / 1000))
 				{
-					Log.d("Bearing Location Tracker", "Tracking fallback, forcing update");
+					if (LOG)
+					{
+						Log.d("Bearing Location Tracker", "Tracking fallback, forcing update");
+					}
 					lastReportedLocation = location;
 					lastReportedTimestamp = currentTimestamp;
 
@@ -186,9 +197,9 @@ public class GMSLocationProvider implements LocationProvider, GooglePlayServices
 			}
 		});
 
-		if (locationClient.isConnected())
+		if (apiClient.isConnected())
 		{
-			locationClient.requestLocationUpdates(gmsRequest, runningRequests.get(requestId));
+			LocationServices.FusedLocationApi.requestLocationUpdates(apiClient, gmsRequest, runningRequests.get(requestId));
 		}
 		else
 		{
@@ -197,7 +208,7 @@ public class GMSLocationProvider implements LocationProvider, GooglePlayServices
 			{
 				@Override public void run()
 				{
-					locationClient.requestLocationUpdates(gmsRequest, runningRequests.get(requestId));
+					LocationServices.FusedLocationApi.requestLocationUpdates(apiClient, gmsRequest, runningRequests.get(requestId));
 				}
 			});
 		}
@@ -250,12 +261,12 @@ public class GMSLocationProvider implements LocationProvider, GooglePlayServices
 
 				if (runningRequests.size() == 0)
 				{
-					locationClient.disconnect();
+					apiClient.disconnect();
 				}
 			}
 		});
 
-		locationClient.requestLocationUpdates(gmsRequest, runningRequests.get(requestId));
+		LocationServices.FusedLocationApi.requestLocationUpdates(apiClient, gmsRequest, runningRequests.get(requestId));
 	}
 
 	/**
@@ -286,31 +297,25 @@ public class GMSLocationProvider implements LocationProvider, GooglePlayServices
 	 * LocationListener and GooglePlayServicesClient callbacks
 	 * ========================================================
 	 */
-
 	@Override public void onConnected(Bundle bundle)
 	{
-		ArrayList<String> executedRequests = new ArrayList<String>(pendingRequests.size());
-
 		// Connected. Perform pending requests
-		for (String key : pendingRequests.keySet())
+		for (Runnable runnable : pendingRequests.values())
 		{
-			Runnable action = pendingRequests.get(key);
-			action.run();
-			executedRequests.add(key);
+			runnable.run();
 		}
 
-		for (String executedRequest : executedRequests)
-		{
-			pendingRequests.remove(executedRequest);
-		}
+		pendingRequests.clear();
 	}
 
-	@Override public void onDisconnected()
+	@Override
+	public void onConnectionSuspended(int i)
 	{
-		// Disconnected
+
 	}
 
-	@Override public void onConnectionFailed(ConnectionResult connectionResult)
+	@Override
+	public void onConnectionFailed(ConnectionResult connectionResult)
 	{
 
 	}
