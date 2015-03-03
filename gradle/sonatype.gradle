@@ -43,7 +43,7 @@ afterEvaluate { project ->
     uploadArchives {
         repositories {
             mavenDeployer {
-                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+                beforeDeployment { deployment -> signing.signPom(deployment) }
 
                 pom.groupId = GROUP
                 pom.artifactId = POM_ARTIFACT_ID
@@ -92,14 +92,9 @@ afterEvaluate { project ->
         sign configurations.archives
     }
 
-    task androidJavadocs(type: Javadoc) {
-        source = 'src/main/java'
-        classpath += project.files(android.plugin.getBootClasspath().join(File.pathSeparator))
-    }
-
-    task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
+    task androidJavadocsJar(type: Jar, dependsOn: generateReleaseJavadoc) {
         classifier = 'javadoc'
-        from androidJavadocs.destinationDir
+        from generateReleaseJavadoc.destinationDir
     }
 
     task androidSourcesJar(type: Jar) {
