@@ -21,7 +21,7 @@ public class CurrentLocationTask extends LocationTask
 	public CurrentLocationTask start()
 	{
 		super.start();
-		locationProvider.requestSingleLocationUpdate(request, new LocationListener()
+		this.taskId = locationProvider.requestSingleLocationUpdate(request, new LocationListener()
 		{
 			@Override public void onUpdate(Location location)
 			{
