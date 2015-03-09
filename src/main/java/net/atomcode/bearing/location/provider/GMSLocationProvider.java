@@ -266,7 +266,10 @@ public class GMSLocationProvider implements LocationProvider, GoogleApiClient.Co
 			}
 		});
 
-		LocationServices.FusedLocationApi.requestLocationUpdates(apiClient, gmsRequest, runningRequests.get(requestId));
+		if (apiClient.isConnected())
+		{
+			LocationServices.FusedLocationApi.requestLocationUpdates(apiClient, gmsRequest, runningRequests.get(requestId));
+		}
 	}
 
 	/**
