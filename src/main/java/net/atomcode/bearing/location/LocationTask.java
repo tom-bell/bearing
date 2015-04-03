@@ -36,10 +36,10 @@ public abstract class LocationTask implements BearingTask
 
 	protected String taskId;
 
-	private final Handler mainThreadHandler;
-
 	public LocationTask(Context context)
 	{
+		// TODO: Fix this to make more testable!
+
 		isUsingLegacyServices = !Bearing.isLocationServicesAvailable(context);
 		if (isUsingLegacyServices)
 		{
@@ -52,8 +52,6 @@ public abstract class LocationTask implements BearingTask
 		locationProvider.create(context);
 
 		request = new LocationProviderRequest();
-
-		mainThreadHandler = new Handler(Looper.getMainLooper());
 	}
 
 	@Override
@@ -151,18 +149,18 @@ public abstract class LocationTask implements BearingTask
 	 * ==============================================
 	 */
 
-	private void notifyEvent(Runnable callback)
+	private void notifyEventOnMainThread(Runnable callback)
 	{
 		if (listener == null)
 		{
 			return;
 		}
-		mainThreadHandler.post(callback);
+		new Handler(Looper.getMainLooper()).post(callback);
 	}
 
 	protected void notifyLocationUpdate(final Location location)
 	{
-		notifyEvent(new Runnable()
+		notifyEventOnMainThread(new Runnable()
 		{
 			@Override
 			public void run()
@@ -174,7 +172,8 @@ public abstract class LocationTask implements BearingTask
 
 	protected void notifyTimeout()
 	{
-		notifyEvent(new Runnable() {
+		notifyEventOnMainThread(new Runnable()
+		{
 			@Override
 			public void run()
 			{
@@ -185,7 +184,8 @@ public abstract class LocationTask implements BearingTask
 
 	protected void notifyFailure()
 	{
-		notifyEvent(new Runnable() {
+		notifyEventOnMainThread(new Runnable()
+		{
 			@Override
 			public void run()
 			{
