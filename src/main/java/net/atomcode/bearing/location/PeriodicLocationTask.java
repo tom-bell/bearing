@@ -1,6 +1,7 @@
 package net.atomcode.bearing.location;
 
 import android.content.Context;
+import android.location.Location;
 
 /**
  * Gets the users current location over distance using the best available service
@@ -20,7 +21,25 @@ public class PeriodicLocationTask extends LocationTask
 	public PeriodicLocationTask start()
 	{
 		super.start();
-		this.taskId = locationProvider.requestRecurringLocationUpdates(request, listener);
+		this.taskId = locationProvider.requestRecurringLocationUpdates(request, new LocationListener() {
+			@Override
+			public void onUpdate(Location location)
+			{
+				notifyLocationUpdate(location);
+			}
+
+			@Override
+			public void onFailure()
+			{
+				notifyFailure();
+			}
+
+			@Override
+			public void onTimeout()
+			{
+				notifyTimeout();
+			}
+		});
 		return this;
 	}
 

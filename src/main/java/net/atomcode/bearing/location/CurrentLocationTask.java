@@ -29,21 +29,18 @@ public class CurrentLocationTask extends LocationTask
 				{
 					// Cancel current task
 					running = false;
-                    if (listener != null)
-                    {
-					    listener.onUpdate(location);
-                    }
+                    notifyLocationUpdate(location);
 				}
 			}
 
 			@Override public void onFailure()
 			{
-				listener.onFailure();
+				notifyFailure();
 			}
 
 			@Override public void onTimeout()
 			{
-				listener.onTimeout();
+				notifyTimeout();
 			}
 		});
 		return this;

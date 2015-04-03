@@ -36,6 +36,8 @@ public abstract class LocationTask implements BearingTask
 
 	protected String taskId;
 
+	private final Handler mainThreadHandler;
+
 	public LocationTask(Context context)
 	{
 		isUsingLegacyServices = !Bearing.isLocationServicesAvailable(context);
@@ -50,6 +52,8 @@ public abstract class LocationTask implements BearingTask
 		locationProvider.create(context);
 
 		request = new LocationProviderRequest();
+
+		mainThreadHandler = new Handler(Looper.getMainLooper());
 	}
 
 	@Override
@@ -66,11 +70,8 @@ public abstract class LocationTask implements BearingTask
 					if (isRunning())
 					{
 						LocationTask.this.cancel();
-						if (listener != null)
-						{
-							listener.onTimeout();
-							handleTimeoutFallback();
-						}
+						notifyTimeout();
+						handleTimeoutFallback();
 					}
 				}
 			}, timeout);
@@ -150,29 +151,66 @@ public abstract class LocationTask implements BearingTask
 	 * ==============================================
 	 */
 
+	private void notifyEvent(Runnable callback)
+	{
+		if (listener == null)
+		{
+			return;
+		}
+		mainThreadHandler.post(callback);
+	}
+
+	protected void notifyLocationUpdate(final Location location)
+	{
+		notifyEvent(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				listener.onUpdate(location);
+			}
+		});
+	}
+
+	protected void notifyTimeout()
+	{
+		notifyEvent(new Runnable() {
+			@Override
+			public void run()
+			{
+				listener.onTimeout();
+			}
+		});
+	}
+
+	protected void notifyFailure()
+	{
+		notifyEvent(new Runnable() {
+			@Override
+			public void run()
+			{
+				listener.onFailure();
+			}
+		});
+	}
+
 	/**
 	 * Handle the timeout fallback here.
 	 * listener is non-null at this point.
 	 */
 	private void handleTimeoutFallback()
 	{
-		new Handler(Looper.getMainLooper()).post(new Runnable()
+		if (fallback == FALLBACK_CACHE)
 		{
-			@Override public void run()
+			Location cachedLocation = locationProvider.getLastKnownLocation(request);
+			if (cachedLocation != null)
 			{
-				if (fallback == FALLBACK_CACHE)
-				{
-					Location cachedLocation = locationProvider.getLastKnownLocation(request);
-					if (cachedLocation != null)
-					{
-						listener.onUpdate(cachedLocation);
-					}
-					else
-					{
-						listener.onFailure();
-					}
-				}
+				notifyLocationUpdate(cachedLocation);
 			}
-		});
+			else
+			{
+				notifyFailure();
+			}
+		}
 	}
 }
