@@ -19,12 +19,12 @@ apply plugin: 'com.android.library'
 apply from: 'gradle/sonatype.gradle'
 
 android {
-    compileSdkVersion 21
-    buildToolsVersion "21.1.2"
+    compileSdkVersion 22
+    buildToolsVersion "22.0.1"
 
     defaultConfig {
         minSdkVersion 9
-        targetSdkVersion 21
+        targetSdkVersion 22
         versionName version
         versionCode versionCode
     }
@@ -54,7 +54,7 @@ android.libraryVariants.all { variant ->
 
 dependencies {
     // Explicit dependency on support lib to allow sdk-manager plugin to prepare it
-    compile 'com.android.support:support-v4:21.0.3'
+    compile 'com.android.support:support-v4:22.0.0'
     compile 'com.google.android.gms:play-services:6.5.87'
 
     testCompile 'junit:junit:4.12'
