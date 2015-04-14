@@ -17,8 +17,8 @@
 apply plugin: 'maven'
 apply plugin: 'signing'
 
-def isReleaseBuild() {
-    return VERSION_NAME.contains("SNAPSHOT") == false
+def isReleaseBuild(Project project) {
+    return project.version.contains("SNAPSHOT") == false
 }
 
 def getReleaseRepositoryUrl() {
@@ -45,9 +45,9 @@ afterEvaluate { project ->
             mavenDeployer {
                 beforeDeployment { deployment -> signing.signPom(deployment) }
 
-                pom.groupId = GROUP
+                pom.groupId = project.group
                 pom.artifactId = POM_ARTIFACT_ID
-                pom.version = VERSION_NAME
+                pom.version = project.version
 
                 repository(url: getReleaseRepositoryUrl()) {
                     authentication(userName: getRepositoryUsername(), password: getRepositoryPassword())
@@ -88,7 +88,7 @@ afterEvaluate { project ->
     }
 
     signing {
-        required { isReleaseBuild() && gradle.taskGraph.hasTask("uploadArchives") }
+        required { isReleaseBuild(project) && gradle.taskGraph.hasTask("uploadArchives") }
         sign configurations.archives
     }
 

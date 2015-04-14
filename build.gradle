@@ -3,7 +3,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:1.0.0'
+        classpath 'com.android.tools.build:gradle:1.1.0'
         classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
     }
 }
@@ -18,28 +18,16 @@ apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.library'
 apply from: 'gradle/sonatype.gradle'
 
-group 'net.atomcode'
-version '2.2.6'
-
 android {
-    compileSdkVersion 21
-    buildToolsVersion "21.1.2"
+    compileSdkVersion 22
+    buildToolsVersion "22.0.1"
 
     defaultConfig {
         minSdkVersion 9
-        targetSdkVersion 21
-        versionCode calculatedVersionCode()
-        versionName project.version
+        targetSdkVersion 22
+        versionName version
+        versionCode versionCode
     }
-}
-
-def calculatedVersionCode() {
-    String[] versionElements = project.version.toString().split("\\.");
-    StringBuilder builder = new StringBuilder();
-    versionElements.each { elem ->
-        builder.append(elem.format("%0" + (4 - elem.length().toInteger()) + "d", elem.toInteger()))
-    }
-    return Integer.valueOf(builder.toString());
 }
 
 android.libraryVariants.all { variant ->
@@ -61,10 +49,14 @@ android.libraryVariants.all { variant ->
         exclude '**/R.java'
     }
 //    tasks.androidJavadocsJar.dependsOn "generate${variantName}Javadoc"
+    tasks.getByName("generate${variantName}Javadoc").dependsOn "assemble${variantName}"
 }
 
 dependencies {
     // Explicit dependency on support lib to allow sdk-manager plugin to prepare it
-    compile 'com.android.support:support-v4:21.0.3'
+    compile 'com.android.support:support-v4:22.0.0'
     compile 'com.google.android.gms:play-services:6.5.87'
+
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.mockito:mockito-core:2.0.5-beta'
 }

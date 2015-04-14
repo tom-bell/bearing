@@ -24,6 +24,7 @@ import java.util.UUID;
 public class GMSLocationProvider implements LocationProvider, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener
 {
 	private static final boolean LOG = false;
+	private static final String LOG_TAG = "Bearing";
 
 	private static GMSLocationProvider instance;
 
@@ -164,14 +165,14 @@ public class GMSLocationProvider implements LocationProvider, GoogleApiClient.Co
 
 				if (LOG)
 				{
-					Log.d("Bearing Location Tracker", "onLocationChanged last reported: " + timeSinceLastReport + " seconds ago (Fallback at " + request.trackingFallback / 1000 + ")");
+					Log.d(LOG_TAG, "onLocationChanged last reported: " + timeSinceLastReport + " seconds ago (Fallback at " + request.trackingFallback / 1000 + ")");
 				}
 
 				if (lastReportedTimestamp == -1 || timeSinceLastReport > (request.trackingFallback / 1000))
 				{
 					if (LOG)
 					{
-						Log.d("Bearing Location Tracker", "Tracking fallback, forcing update");
+						Log.d(LOG_TAG, "Tracking fallback, forcing update");
 					}
 					lastReportedLocation = location;
 					lastReportedTimestamp = currentTimestamp;

@@ -38,6 +38,8 @@ public abstract class LocationTask implements BearingTask
 
 	public LocationTask(Context context)
 	{
+		// TODO: Fix this to make more testable!
+
 		isUsingLegacyServices = !Bearing.isLocationServicesAvailable(context);
 		if (isUsingLegacyServices)
 		{
@@ -66,11 +68,8 @@ public abstract class LocationTask implements BearingTask
 					if (isRunning())
 					{
 						LocationTask.this.cancel();
-						if (listener != null)
-						{
-							listener.onTimeout();
-							handleTimeoutFallback();
-						}
+						notifyTimeout();
+						handleTimeoutFallback();
 					}
 				}
 			}, timeout);
@@ -150,29 +149,68 @@ public abstract class LocationTask implements BearingTask
 	 * ==============================================
 	 */
 
+	private void notifyEventOnMainThread(Runnable callback)
+	{
+		if (listener == null)
+		{
+			return;
+		}
+		new Handler(Looper.getMainLooper()).post(callback);
+	}
+
+	protected void notifyLocationUpdate(final Location location)
+	{
+		notifyEventOnMainThread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				listener.onUpdate(location);
+			}
+		});
+	}
+
+	protected void notifyTimeout()
+	{
+		notifyEventOnMainThread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				listener.onTimeout();
+			}
+		});
+	}
+
+	protected void notifyFailure()
+	{
+		notifyEventOnMainThread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				listener.onFailure();
+			}
+		});
+	}
+
 	/**
 	 * Handle the timeout fallback here.
 	 * listener is non-null at this point.
 	 */
 	private void handleTimeoutFallback()
 	{
-		new Handler(Looper.getMainLooper()).post(new Runnable()
+		if (fallback == FALLBACK_CACHE)
 		{
-			@Override public void run()
+			Location cachedLocation = locationProvider.getLastKnownLocation(request);
+			if (cachedLocation != null)
 			{
-				if (fallback == FALLBACK_CACHE)
-				{
-					Location cachedLocation = locationProvider.getLastKnownLocation(request);
-					if (cachedLocation != null)
-					{
-						listener.onUpdate(cachedLocation);
-					}
-					else
-					{
-						listener.onFailure();
-					}
-				}
+				notifyLocationUpdate(cachedLocation);
 			}
-		});
+			else
+			{
+				notifyFailure();
+			}
+		}
 	}
 }
